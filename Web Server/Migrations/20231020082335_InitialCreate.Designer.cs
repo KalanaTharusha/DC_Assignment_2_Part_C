@@ -10,7 +10,7 @@ using Web_Server.Data;
 namespace Web_Server.Migrations
 {
     [DbContext(typeof(DBManager))]
-    [Migration("20231019161344_InitialCreate")]
+    [Migration("20231020082335_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -19,24 +19,21 @@ namespace Web_Server.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.12");
 
-            modelBuilder.Entity("Job_DLL.Job", b =>
+            modelBuilder.Entity("Client_DLL.Client", b =>
                 {
-                    b.Property<int>("JobId")
+                    b.Property<int>("ClientId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("PythonScript")
+                    b.Property<string>("IPAddress")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Result")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Port")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("TEXT");
+                    b.HasKey("ClientId");
 
-                    b.HasKey("JobId");
-
-                    b.ToTable("Job");
+                    b.ToTable("Client");
                 });
 #pragma warning restore 612, 618
         }

@@ -5,62 +5,62 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Job_DLL;
+using Client_DLL;
 using Web_Server.Data;
 
 namespace Web_Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class JobsController : ControllerBase
+    public class ClientsController : ControllerBase
     {
         private readonly DBManager _context;
 
-        public JobsController(DBManager context)
+        public ClientsController(DBManager context)
         {
             _context = context;
         }
 
-        // GET: api/Jobs
+        // GET: api/Clients
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Job>>> GetJob()
+        public async Task<ActionResult<IEnumerable<Client>>> GetClient()
         {
-          if (_context.Job == null)
+          if (_context.Client == null)
           {
               return NotFound();
           }
-            return await _context.Job.ToListAsync();
+            return await _context.Client.ToListAsync();
         }
 
-        // GET: api/Jobs/5
+        // GET: api/Clients/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Job>> GetJob(int id)
+        public async Task<ActionResult<Client>> GetClient(int id)
         {
-          if (_context.Job == null)
+          if (_context.Client == null)
           {
               return NotFound();
           }
-            var job = await _context.Job.FindAsync(id);
+            var client = await _context.Client.FindAsync(id);
 
-            if (job == null)
+            if (client == null)
             {
                 return NotFound();
             }
 
-            return job;
+            return client;
         }
 
-        // PUT: api/Jobs/5
+        // PUT: api/Clients/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutJob(int id, Job job)
+        public async Task<IActionResult> PutClient(int id, Client client)
         {
-            if (id != job.JobId)
+            if (id != client.ClientId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(job).State = EntityState.Modified;
+            _context.Entry(client).State = EntityState.Modified;
 
             try
             {
@@ -68,7 +68,7 @@ namespace Web_Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!JobExists(id))
+                if (!ClientExists(id))
                 {
                     return NotFound();
                 }
@@ -81,44 +81,44 @@ namespace Web_Server.Controllers
             return NoContent();
         }
 
-        // POST: api/Jobs
+        // POST: api/Clients
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Job>> PostJob(Job job)
+        public async Task<ActionResult<Client>> PostClient(Client client)
         {
-          if (_context.Job == null)
+          if (_context.Client == null)
           {
-              return Problem("Entity set 'DBManager.Job'  is null.");
+              return Problem("Entity set 'DBManager.Client'  is null.");
           }
-            _context.Job.Add(job);
+            _context.Client.Add(client);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetJob", new { id = job.JobId }, job);
+            return CreatedAtAction("GetClient", new { id = client.ClientId }, client);
         }
 
-        // DELETE: api/Jobs/5
+        // DELETE: api/Clients/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteJob(int id)
+        public async Task<IActionResult> DeleteClient(int id)
         {
-            if (_context.Job == null)
+            if (_context.Client == null)
             {
                 return NotFound();
             }
-            var job = await _context.Job.FindAsync(id);
-            if (job == null)
+            var client = await _context.Client.FindAsync(id);
+            if (client == null)
             {
                 return NotFound();
             }
 
-            _context.Job.Remove(job);
+            _context.Client.Remove(client);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool JobExists(int id)
+        private bool ClientExists(int id)
         {
-            return (_context.Job?.Any(e => e.JobId == id)).GetValueOrDefault();
+            return (_context.Client?.Any(e => e.ClientId == id)).GetValueOrDefault();
         }
     }
 }

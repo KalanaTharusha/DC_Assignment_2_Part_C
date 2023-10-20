@@ -1,4 +1,4 @@
-﻿using Job_DLL;
+﻿using Client_DLL;
 using Microsoft.EntityFrameworkCore;
 
 namespace Web_Server.Data
@@ -15,6 +15,6 @@ namespace Web_Server.Data
             base.OnModelCreating(modelBuilder);
         }
 
-        public DbSet<Job>? Job { get; set; }
+        public DbSet<Client>? Client { get; set; }
     }
 }

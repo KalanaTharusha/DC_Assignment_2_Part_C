@@ -11,7 +11,14 @@ namespace Job_DLL
         public int JobId { get; set; }
         public string PythonScript { get; set; }
         public string Result { get; set; }
-        public string Status { get; set; }
+        public JobStatus Status { get; set; }
+
+        public enum JobStatus{
+            ToDo,
+            InProgress,
+            Completed,
+            Displayed
+        }
 
     }
 }

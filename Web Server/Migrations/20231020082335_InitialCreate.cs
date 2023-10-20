@@ -11,18 +11,17 @@ namespace Web_Server.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Job",
+                name: "Client",
                 columns: table => new
                 {
-                    JobId = table.Column<int>(type: "INTEGER", nullable: false)
+                    ClientId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    PythonScript = table.Column<string>(type: "TEXT", nullable: true),
-                    Result = table.Column<string>(type: "TEXT", nullable: true),
-                    Status = table.Column<string>(type: "TEXT", nullable: true)
+                    IPAddress = table.Column<string>(type: "TEXT", nullable: true),
+                    Port = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Job", x => x.JobId);
+                    table.PrimaryKey("PK_Client", x => x.ClientId);
                 });
         }
 
@@ -30,7 +29,7 @@ namespace Web_Server.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Job");
+                name: "Client");
         }
     }
 }

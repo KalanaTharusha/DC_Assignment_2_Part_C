@@ -8,6 +8,7 @@ namespace Client_DLL
 {
     public class Client
     {
+        public int ClientId { get; set; }
         public string IPAddress { get; set; }
         public int Port { get; set; }
     }

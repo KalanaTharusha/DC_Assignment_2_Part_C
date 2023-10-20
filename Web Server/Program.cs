@@ -1,7 +1,10 @@
+using Web_Server.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<DBManager>();
 
 var app = builder.Build();
 
