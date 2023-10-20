@@ -10,8 +10,8 @@ using System.Linq;
 using System.ServiceModel;
 using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace Client_Desktop_Application
 {
@@ -21,9 +21,12 @@ namespace Client_Desktop_Application
     public partial class MainWindow : Window
     {
         List<Client> clients = new List<Client> ();
-        private IJobHost foob;
+        private IJobServer foob;
         private int port;
         private int clientID;
+        private int totalJobsCompleted = 0;
+        private string currJobProgress = "Idle";
+
         public MainWindow()
         {
             InitializeComponent();
@@ -36,9 +39,9 @@ namespace Client_Desktop_Application
 
             NetTcpBinding tcp = new NetTcpBinding();
 
-            host = new ServiceHost(typeof(JobHost));
+            host = new ServiceHost(typeof(JobServer));
 
-            host.AddServiceEndpoint(typeof(IJobHost), tcp, "net.tcp://localhost:" + port + "/JobService");
+            host.AddServiceEndpoint(typeof(IJobServer), tcp, "net.tcp://localhost:" + port + "/JobService");
             host.Open();
             Console.WriteLine("System Online");
             Console.ReadLine();
@@ -64,23 +67,46 @@ namespace Client_Desktop_Application
                     {
                         if (client.Port != port)
                         {
-                            ChannelFactory<IJobHost> foobFactory;
+                            ChannelFactory<IJobServer> foobFactory;
                             NetTcpBinding tcp = new NetTcpBinding();
 
                             string URL = "net.tcp://localhost:" + client.Port + "/JobService";
-                            foobFactory = new ChannelFactory<IJobHost>(tcp, URL);
+                            foobFactory = new ChannelFactory<IJobServer>(tcp, URL);
                             foob = foobFactory.CreateChannel();
 
                             Job job = foob.RequestJob();
 
                             if (job != null)
                             {
+                                Dispatcher.Invoke(() =>
+                                {
+                                    ProgressLbl.Foreground = Brushes.Red;
+                                    ProgressLbl.Content = "In progress";
+                                });
+
                                 var result = RunPythonScript(job.PythonScript);
                                 string sResult = result.ToString();
 
+                                Thread.Sleep(2000);
+
                                 foob.SubmitResult(job.JobId, sResult);
+
+                                Dispatcher.Invoke(() =>
+                                {
+                                    ProgressLbl.Foreground = Brushes.Green;
+                                    ProgressLbl.Content = "Completed";
+                                });
+
+                                Thread.Sleep(2000);
+
+                                totalJobsCompleted++;
                             }
                         }
+                        Dispatcher.Invoke(() =>
+                        {
+                            ProgressLbl.Foreground = Brushes.Blue;
+                            ProgressLbl.Content = "Idle";
+                        });
                     }
 
                     Dispatcher.Invoke(() =>
@@ -94,6 +120,8 @@ namespace Client_Desktop_Application
                                 ResultTB.Document.Blocks.Add(paragraph);
                             }
                         }
+
+                        TotalLbl.Content = totalJobsCompleted;
                     });
 
                     restResponse = restClient.Execute(restRequest);

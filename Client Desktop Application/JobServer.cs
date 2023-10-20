@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Job_DLL;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Job_DLL
+namespace Client_Desktop_Application
 {
-    public class JobHost : IJobHost
+    public class JobServer : IJobServer
     {
         public string Ping()
         {
@@ -16,7 +17,7 @@ namespace Job_DLL
         {
             foreach (var job in JobList.Jobs)
             {
-                if(job.Status.Equals(Job.JobStatus.ToDo))
+                if (job.Status.Equals(Job.JobStatus.ToDo))
                 {
                     job.Status = Job.JobStatus.InProgress;
                     return job;
