@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace Client_Desktop_Application
 {
@@ -89,28 +90,35 @@ namespace Client_Desktop_Application
 								});
 
 								byte[] encodedString = Convert.FromBase64String(job.PythonScript);
-								String pythonScript = Encoding.UTF8.GetString(encodedString);
+								
+								SHA256 sha256hASH = SHA256.Create();
+								byte[] hash = sha256hASH.ComputeHash(encodedString);
 
-								var result = RunPythonScript(pythonScript);
-								string sResult = result.ToString();
-
-								Thread.Sleep(2000);
-
-								foob.SubmitResult(job.JobId, sResult);
-								currJobProgress = "Completed";
-								UpdateClient();
-
-								Dispatcher.Invoke(() =>
+								if (hash.SequenceEqual(job.Hash))
 								{
-									ProgressLbl.Foreground = Brushes.Green;
-									ProgressLbl.Content = currJobProgress;
-								});
+									String pythonScript = Encoding.UTF8.GetString(encodedString);
 
-								Thread.Sleep(2000);
+									var result = RunPythonScript(pythonScript);
+									string sResult = result.ToString();
 
-								totalJobsCompleted++;
-								currJobProgress = "Idle";
-								UpdateClient();
+									Thread.Sleep(2000);
+
+									foob.SubmitResult(job.JobId, sResult);
+									currJobProgress = "Completed";
+									UpdateClient();
+
+									Dispatcher.Invoke(() =>
+									{
+										ProgressLbl.Foreground = Brushes.Green;
+										ProgressLbl.Content = currJobProgress;
+									});
+
+									Thread.Sleep(2000);
+
+									totalJobsCompleted++;
+									currJobProgress = "Idle";
+									UpdateClient();
+								}
 							}
 						}
 						Dispatcher.Invoke(() =>
@@ -250,11 +258,14 @@ namespace Client_Desktop_Application
 			Job job = new Job();
 			job.JobId = JobList.Jobs.Count + 1;
 			job.Status = Job.JobStatus.ToDo;
+
 			TextRange script = new TextRange(ScriptTB.Document.ContentStart, ScriptTB.Document.ContentEnd);
-
 			byte[] textBytes = Encoding.UTF8.GetBytes(script.Text);
-
 			job.PythonScript = Convert.ToBase64String(textBytes);
+
+			SHA256 sha256hASH = SHA256.Create();
+			byte[] hash = sha256hASH.ComputeHash(textBytes);
+			job.Hash = hash;
 
 			JobList.Jobs.Add(job);
 			

@@ -12,6 +12,7 @@ namespace Job_DLL
         public string PythonScript { get; set; }
         public string Result { get; set; }
         public JobStatus Status { get; set; }
+        public byte[] Hash { get; set; }
 
         public enum JobStatus{
             ToDo,
