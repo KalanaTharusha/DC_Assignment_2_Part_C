@@ -25,8 +25,14 @@ namespace Web_Server.Migrations
                     b.Property<string>("IPAddress")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("JobsCompleted")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Port")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("ClientId");
 

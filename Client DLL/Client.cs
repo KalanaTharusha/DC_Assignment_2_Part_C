@@ -11,5 +11,7 @@ namespace Client_DLL
         public int ClientId { get; set; }
         public string IPAddress { get; set; }
         public int Port { get; set; }
+        public string Status { get; set; }
+        public int JobsCompleted { get; set; }
     }
 }

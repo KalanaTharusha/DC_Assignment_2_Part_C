@@ -78,10 +78,13 @@ namespace Client_Desktop_Application
 
                             if (job != null)
                             {
+                                currJobProgress = "In Progress";
+                                UpdateClient();
+
                                 Dispatcher.Invoke(() =>
                                 {
                                     ProgressLbl.Foreground = Brushes.Red;
-                                    ProgressLbl.Content = "In progress";
+                                    ProgressLbl.Content = currJobProgress;
                                 });
 
                                 var result = RunPythonScript(job.PythonScript);
@@ -90,22 +93,26 @@ namespace Client_Desktop_Application
                                 Thread.Sleep(2000);
 
                                 foob.SubmitResult(job.JobId, sResult);
+                                currJobProgress = "Completed";
+                                UpdateClient();
 
                                 Dispatcher.Invoke(() =>
                                 {
                                     ProgressLbl.Foreground = Brushes.Green;
-                                    ProgressLbl.Content = "Completed";
+                                    ProgressLbl.Content = currJobProgress;
                                 });
 
                                 Thread.Sleep(2000);
 
                                 totalJobsCompleted++;
+                                currJobProgress = "Idle";
+                                UpdateClient();
                             }
                         }
                         Dispatcher.Invoke(() =>
                         {
                             ProgressLbl.Foreground = Brushes.Blue;
-                            ProgressLbl.Content = "Idle";
+                            ProgressLbl.Content = currJobProgress;
                         });
                     }
 
@@ -154,6 +161,8 @@ namespace Client_Desktop_Application
                 Client client = new Client();
                 client.IPAddress = "127.0.0.1";
                 client.Port = port;
+                client.Status = "Idle";
+                client.JobsCompleted = 0;
                 restRequest.AddBody(client);
 
                 restResponse = restClient.Execute(restRequest);
@@ -190,6 +199,31 @@ namespace Client_Desktop_Application
             return result();
         }
 
+        private void UpdateClient ()
+        {
+            try
+            {
+                RestClient restClient = new RestClient("http://localhost:5082");
+                RestRequest restRequest;
+                RestResponse restResponse;
+
+                restRequest = new RestRequest("/api/clients/" + clientID, Method.Get);
+                restResponse = restClient.Execute(restRequest);
+
+                Client client = JsonConvert.DeserializeObject<Client>(restResponse.Content);
+                client.JobsCompleted = totalJobsCompleted;
+                client.Status = currJobProgress;
+
+                restRequest = new RestRequest("/api/clients/" + clientID, Method.Put);
+                restRequest.AddBody(client);
+
+                restResponse = restClient.Execute(restRequest);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
         private void RegBtn_Click(object sender, RoutedEventArgs e)
         {
             Register();

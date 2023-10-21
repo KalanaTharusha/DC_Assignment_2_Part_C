@@ -10,7 +10,7 @@ using Web_Server.Data;
 namespace Web_Server.Migrations
 {
     [DbContext(typeof(DBManager))]
-    [Migration("20231020082335_InitialCreate")]
+    [Migration("20231021044025_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -28,8 +28,14 @@ namespace Web_Server.Migrations
                     b.Property<string>("IPAddress")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("JobsCompleted")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Port")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("ClientId");
 

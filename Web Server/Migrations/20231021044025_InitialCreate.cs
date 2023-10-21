@@ -17,7 +17,9 @@ namespace Web_Server.Migrations
                     ClientId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     IPAddress = table.Column<string>(type: "TEXT", nullable: true),
-                    Port = table.Column<int>(type: "INTEGER", nullable: false)
+                    Port = table.Column<int>(type: "INTEGER", nullable: false),
+                    Status = table.Column<string>(type: "TEXT", nullable: true),
+                    JobsCompleted = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

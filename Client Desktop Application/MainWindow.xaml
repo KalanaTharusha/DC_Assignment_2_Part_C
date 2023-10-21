@@ -6,6 +6,11 @@
         xmlns:local="clr-namespace:Client_Desktop_Application"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <Style x:Key="LineHeightStyle" TargetType="Paragraph">
+            <Setter Property="LineHeight" Value="1" />
+        </Style>
+    </Window.Resources>
     <Grid>
         <Border x:Name="RegPanel" Visibility="Visible">
             <Grid>
@@ -19,16 +24,11 @@
             <Grid>
                 <RichTextBox x:Name="ScriptTB" HorizontalAlignment="Left" Margin="23,87,0,0" VerticalAlignment="Top" Width="424" Height="192">
                     <FlowDocument>
-                        <Paragraph>
-                            <Run Text="RichTextBox"/>
-                        </Paragraph>
+                        <Paragraph Style="{StaticResource LineHeightStyle}" />
                     </FlowDocument>
                 </RichTextBox>
-                <RichTextBox x:Name="ResultTB" HorizontalAlignment="Left" Margin="476,87,0,0" VerticalAlignment="Top" Width="299" Height="192">
+                <RichTextBox x:Name="ResultTB" HorizontalAlignment="Left" Margin="476,87,0,0" VerticalAlignment="Top" Width="299" Height="192" Background="Black" Foreground="White">
                     <FlowDocument>
-                        <Paragraph>
-                            <Run Text="RichTextBox"/>
-                        </Paragraph>
                     </FlowDocument>
                 </RichTextBox>
                 <Button x:Name="PostBtn" Content="Post" HorizontalAlignment="Left" Margin="387,295,0,0" VerticalAlignment="Top" Width="60" Click="PostBtn_Click"/>

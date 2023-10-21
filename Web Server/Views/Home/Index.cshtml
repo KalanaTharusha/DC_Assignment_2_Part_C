@@ -1,8 +1,62 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+	ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@*<div class="text-center">
+	<h1 class="display-4">Welcome</h1>
+	<p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>*@
+
+<div style="padding: 20px">
+	<h1 class="display-2">SWARM Dashboard</h1>
 </div>
+
+<table class="table table-striped">
+	<thead class="table-dark">
+		<tr>
+			<th style="width: 150px;" scope="col">IP Address</th>
+			<th style="width: 150px;" scope="col">Port No</th>
+			<th style="width: 150px;" scope="col">Status</th>
+			<th style="width: 150px;" scope="col">Total Jobs Completed</th>
+		</tr>
+	</thead>
+	<tbody id="tableData"></tbody>
+</table>
+
+<script>
+
+	function getData() {
+
+		document.getElementById("tableData").innerHTML = '';
+
+		let options = {
+			method: 'GET',
+			headers: {
+				'Content-Type':
+					'application/json;charset=utf-8'
+			},
+		}
+
+		let fetchRes = fetch(
+			"http://localhost:5082/api/clients",
+			options);
+		fetchRes.then(res =>
+			res.json()).then(d => {
+				d.forEach(i => {
+					console.log(i)
+					var tableRow = ` <tr>
+									    <th scope="row">${i.ipAddress}</th>
+										<td>${i.port}</td>
+										<td>${i.status}</td>
+										<td>${i.jobsCompleted}</td>
+									 </tr> `;
+
+					document.getElementById("tableData").innerHTML += tableRow;
+				})
+			})
+	}
+
+	setInterval(getData, 2000)
+	getData()
+
+</script>
