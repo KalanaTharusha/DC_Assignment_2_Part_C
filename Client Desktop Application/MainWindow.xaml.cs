@@ -12,6 +12,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Text;
 
 namespace Client_Desktop_Application
 {
@@ -87,7 +88,10 @@ namespace Client_Desktop_Application
 									ProgressLbl.Content = currJobProgress;
 								});
 
-								var result = RunPythonScript(job.PythonScript);
+								byte[] encodedString = Convert.FromBase64String(job.PythonScript);
+								String pythonScript = Encoding.UTF8.GetString(encodedString);
+
+								var result = RunPythonScript(pythonScript);
 								string sResult = result.ToString();
 
 								Thread.Sleep(2000);
@@ -247,7 +251,10 @@ namespace Client_Desktop_Application
 			job.JobId = JobList.Jobs.Count + 1;
 			job.Status = Job.JobStatus.ToDo;
 			TextRange script = new TextRange(ScriptTB.Document.ContentStart, ScriptTB.Document.ContentEnd);
-			job.PythonScript = script.Text;
+
+			byte[] textBytes = Encoding.UTF8.GetBytes(script.Text);
+
+			job.PythonScript = Convert.ToBase64String(textBytes);
 
 			JobList.Jobs.Add(job);
 			
