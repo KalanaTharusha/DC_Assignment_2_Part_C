@@ -14,6 +14,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Text;
 using System.Security.Cryptography;
+using System.IO;
 
 namespace Client_Desktop_Application
 {
@@ -156,7 +157,20 @@ namespace Client_Desktop_Application
 
 		private void Register()
 		{
+			if (!int.TryParse(PortTB.Text, out port))
+			{
+				MessageBox.Show("Invalid Port");
+				return;
+			}
+
 			port = int.Parse(PortTB.Text);
+
+			if (!(port >= 0 && port <= 65535))
+			{
+				MessageBox.Show("Invalid Port");
+				return;
+			}
+
 			RestClient restClient = new RestClient("http://localhost:5082");
 			RestRequest restRequest;
 			RestResponse restResponse;
@@ -260,6 +274,18 @@ namespace Client_Desktop_Application
 			job.Status = Job.JobStatus.ToDo;
 
 			TextRange script = new TextRange(ScriptTB.Document.ContentStart, ScriptTB.Document.ContentEnd);
+
+			if (string.IsNullOrWhiteSpace(script.Text))
+			{
+				MessageBox.Show("Enter a Python script!");
+				return;
+			}
+			else if (!script.Text.Contains("def main():"))
+			{
+				MessageBox.Show("Cannot find the main method!");
+				return;
+			}
+
 			byte[] textBytes = Encoding.UTF8.GetBytes(script.Text);
 			job.PythonScript = Convert.ToBase64String(textBytes);
 
@@ -269,6 +295,24 @@ namespace Client_Desktop_Application
 
 			JobList.Jobs.Add(job);
 			
+		}
+
+		private void UploadBtn_Click(object sender, RoutedEventArgs e)
+		{
+			Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
+			openFileDialog.Filter = "Python Files (*.py)|*.py";
+
+			if (openFileDialog.ShowDialog() == true)
+			{
+				string filePath = openFileDialog.FileName;
+				string pythonCode = File.ReadAllText(filePath);
+
+				Dispatcher.Invoke(() =>
+				{
+					ScriptTB.Document.Blocks.Clear();
+					ScriptTB.AppendText(pythonCode);
+				});
+			}
 		}
 	}
 }
