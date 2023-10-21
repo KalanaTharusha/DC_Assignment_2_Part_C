@@ -8,15 +8,16 @@ using System.Threading.Tasks;
 
 namespace Client_Desktop_Application
 {
-    [ServiceContract]
-    public interface IJobServer
-    {
-        [OperationContract]
-        Job RequestJob();
-        [OperationContract]
-        string Ping();
+	[ServiceContract]
+	public interface IJobServer
+	{
+		[OperationContract]
+		string Ping();
 
-        [OperationContract]
-        void SubmitResult(int jobId, string result);
-    }
+		[OperationContract]
+		Job RequestJob();
+
+		[OperationContract]
+		void SubmitResult(int jobId, string result);
+	}
 }

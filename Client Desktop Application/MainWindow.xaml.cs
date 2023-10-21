@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.ServiceModel;
 using System.Threading;
@@ -15,6 +16,8 @@ using System.Windows.Media;
 using System.Text;
 using System.Security.Cryptography;
 using System.IO;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace Client_Desktop_Application
 {
@@ -24,12 +27,12 @@ namespace Client_Desktop_Application
 	public partial class MainWindow : Window
 	{
 		ServiceHost host;
-		List<Client> clients = new List<Client> ();
 		private IJobServer foob;
 		private int port;
 		private int clientID;
 		private int totalJobsCompleted = 0;
 		private string currJobProgress = "Idle";
+		private bool isClosed = false;
 
 		public MainWindow()
 		{
@@ -37,6 +40,7 @@ namespace Client_Desktop_Application
 
 		}
 
+		// Function for Server thread to host .NET Remoting service
 		private void Server()
 		{
 
@@ -48,9 +52,15 @@ namespace Client_Desktop_Application
 			host.Open();
 			Console.WriteLine("System Online");
 			Console.ReadLine();
-			//host.Close();
+
+			while (!isClosed)
+			{
+				
+			}
+			host.Close();
 		}
 
+		// Function for Network thread to look for new clients and check for jobs to do
 		private void Network()
 		{
 			RestClient restClient = new RestClient("http://localhost:5082");
@@ -64,11 +74,11 @@ namespace Client_Desktop_Application
 			
 			while(true)
 			{
-				try
+				foreach (var client in clients)
 				{
-					foreach (var client in clients)
+					if (client.Port != port)
 					{
-						if (client.Port != port)
+						try
 						{
 							ChannelFactory<IJobServer> foobFactory;
 							NetTcpBinding tcp = new NetTcpBinding();
@@ -91,7 +101,7 @@ namespace Client_Desktop_Application
 								});
 
 								byte[] encodedString = Convert.FromBase64String(job.PythonScript);
-								
+
 								SHA256 sha256hASH = SHA256.Create();
 								byte[] hash = sha256hASH.ComputeHash(encodedString);
 
@@ -102,7 +112,7 @@ namespace Client_Desktop_Application
 									var result = RunPythonScript(pythonScript);
 									string sResult = result.ToString();
 
-									Thread.Sleep(2000);
+									Thread.Sleep(1000);
 
 									foob.SubmitResult(job.JobId, sResult);
 									currJobProgress = "Completed";
@@ -114,21 +124,35 @@ namespace Client_Desktop_Application
 										ProgressLbl.Content = currJobProgress;
 									});
 
-									Thread.Sleep(2000);
+									Thread.Sleep(1000);
 
 									totalJobsCompleted++;
 									currJobProgress = "Idle";
 									UpdateClient();
 								}
 							}
+							Dispatcher.Invoke(() =>
+							{
+								ProgressLbl.Foreground = Brushes.Blue;
+								ProgressLbl.Content = currJobProgress;
+							});
 						}
-						Dispatcher.Invoke(() =>
+						catch (TaskCanceledException e)
 						{
-							ProgressLbl.Foreground = Brushes.Blue;
-							ProgressLbl.Content = currJobProgress;
-						});
+							restResponse = restClient.Execute(restRequest);
+							clients = JsonConvert.DeserializeObject<IEnumerable<Client>>(restResponse.Content);
+						}
+						catch (Exception e)
+						{
+							MessageBox.Show(e.Message);
+							restResponse = restClient.Execute(restRequest);
+							clients = JsonConvert.DeserializeObject<IEnumerable<Client>>(restResponse.Content);
+						}
 					}
+				}
 
+				try
+				{
 					Dispatcher.Invoke(() =>
 					{
 						foreach (var job in JobList.Jobs)
@@ -143,18 +167,27 @@ namespace Client_Desktop_Application
 
 						TotalLbl.Content = totalJobsCompleted;
 					});
-
+				}
+				catch (TaskCanceledException)
+				{
 					restResponse = restClient.Execute(restRequest);
 					clients = JsonConvert.DeserializeObject<IEnumerable<Client>>(restResponse.Content);
-				} 
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message);
 				}
+				catch (Exception e)
+				{
+					MessageBox.Show(e.Message);
+					restResponse = restClient.Execute(restRequest);
+					clients = JsonConvert.DeserializeObject<IEnumerable<Client>>(restResponse.Content);
+				}
+				
+
+				restResponse = restClient.Execute(restRequest);
+				clients = JsonConvert.DeserializeObject<IEnumerable<Client>>(restResponse.Content);
 			}
 
 		}
 
+		// New client register function
 		private void Register()
 		{
 			if (!int.TryParse(PortTB.Text, out port))
@@ -178,6 +211,12 @@ namespace Client_Desktop_Application
 			restRequest = new RestRequest("/api/clients", Method.Get);
 			restResponse = restClient.Execute(restRequest);
 
+			if (restResponse.StatusCode != HttpStatusCode.OK)
+			{
+				MessageBox.Show("Cannot connect to the Database!");
+				return;
+			}
+
 			IEnumerable<Client> clients = JsonConvert.DeserializeObject<IEnumerable<Client>>(restResponse.Content);
 
 			if (!clients.Any(c => c.Port == port))
@@ -192,6 +231,12 @@ namespace Client_Desktop_Application
 				restRequest.AddBody(client);
 
 				restResponse = restClient.Execute(restRequest);
+
+				if (restResponse.StatusCode != HttpStatusCode.Created)
+				{
+					MessageBox.Show("Cannot connect to the Database!");
+					return;
+				}
 
 				clientID = JsonConvert.DeserializeObject<Client>(restResponse.Content).ClientId;
 
@@ -213,6 +258,7 @@ namespace Client_Desktop_Application
 			}
 		}
 
+		// Function to run Python scripts
 		private dynamic RunPythonScript(string script)
 		{
 			ScriptEngine engine = Python.CreateEngine();
@@ -225,6 +271,7 @@ namespace Client_Desktop_Application
 			return result();
 		}
 
+		// Function to update client status in database
 		private void UpdateClient ()
 		{
 			try
@@ -236,6 +283,12 @@ namespace Client_Desktop_Application
 				restRequest = new RestRequest("/api/clients/" + clientID, Method.Get);
 				restResponse = restClient.Execute(restRequest);
 
+				if (restResponse.StatusCode != HttpStatusCode.OK)
+				{
+					MessageBox.Show("Cannot connect to the Database!");
+					return;
+				}
+
 				Client client = JsonConvert.DeserializeObject<Client>(restResponse.Content);
 				client.JobsCompleted = totalJobsCompleted;
 				client.Status = currJobProgress;
@@ -244,6 +297,12 @@ namespace Client_Desktop_Application
 				restRequest.AddBody(client);
 
 				restResponse = restClient.Execute(restRequest);
+
+				if (restResponse.StatusCode != HttpStatusCode.NoContent)
+				{
+					MessageBox.Show("Cannot update the client!");
+					return;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -253,18 +312,6 @@ namespace Client_Desktop_Application
 		private void RegBtn_Click(object sender, RoutedEventArgs e)
 		{
 			Register();
-		}
-
-		private void ExitBtn_Click(object sender, RoutedEventArgs e)
-		{
-			RestClient restClient = new RestClient("http://localhost:5082");
-			RestRequest restRequest = new RestRequest("/api/clients/" + clientID, Method.Delete);
-			RestResponse restResponse = restClient.Execute(restRequest);
-
-			host.Close();
-
-			RegPanel.Visibility = Visibility.Visible;
-			MainPanel.Visibility = Visibility.Hidden;
 		}
 
 		private void PostBtn_Click(object sender, RoutedEventArgs e)
@@ -280,7 +327,7 @@ namespace Client_Desktop_Application
 				MessageBox.Show("Enter a Python script!");
 				return;
 			}
-			else if (!script.Text.Contains("def main():"))
+			if (!script.Text.Contains("def main():"))
 			{
 				MessageBox.Show("Cannot find the main method!");
 				return;
@@ -313,6 +360,20 @@ namespace Client_Desktop_Application
 					ScriptTB.AppendText(pythonCode);
 				});
 			}
+		}
+
+		private void MainWindow_OnClosing(object sender, CancelEventArgs e)
+		{
+			RestClient restClient = new RestClient("http://localhost:5082");
+			RestRequest restRequest = new RestRequest("/api/clients/" + clientID, Method.Delete);
+			RestResponse restResponse = restClient.Execute(restRequest);
+
+			if (restResponse.StatusCode != HttpStatusCode.NoContent)
+			{
+				isClosed = true;
+				MessageBox.Show("Cannot remove the client!");
+			}
+
 		}
 	}
 }
