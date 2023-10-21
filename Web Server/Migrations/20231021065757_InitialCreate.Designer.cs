@@ -10,7 +10,7 @@ using Web_Server.Data;
 namespace Web_Server.Migrations
 {
     [DbContext(typeof(DBManager))]
-    [Migration("20231021044025_InitialCreate")]
+    [Migration("20231021065757_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
